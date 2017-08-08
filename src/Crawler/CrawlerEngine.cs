@@ -1,11 +1,5 @@
 ﻿namespace Crawler
 {
-    using System;
-    using System.Net.Http;
-    using System.Threading.Tasks;
-
-    using HtmlAgilityPack;
-
     public class CrawlerEngine
     {
         private readonly ICrawlerRepository crawlerRepository;
@@ -36,10 +30,5 @@
                 this.crawlerRepository.Insert(new CrawlItem { Url = newUrl.AbsoluteUri });
             }
         }
-    }
-
-    public class CrawlItem
-    {
-        public string Url { get; set; }
     }
 }
