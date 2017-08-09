@@ -8,7 +8,7 @@ namespace Crawler
     {
         public string Code { get; set; }
 
-        public Func<Uri, bool> IsCategory { get; set; }
+        public Func<Uri, HtmlDocument, bool> IsCategory { get; set; }
 
         public Action<HtmlDocument> CallBack { get; set; }
     }

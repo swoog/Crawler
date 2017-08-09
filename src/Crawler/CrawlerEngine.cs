@@ -33,6 +33,10 @@
             var document = new HtmlDocument();
             document.LoadHtml(content);
 
+            nextCrawl.Type = this.GetCrawlerType(new Uri(nextCrawl.Url), document);
+
+            this.crawlerRepository.Update(nextCrawl);
+
             var category = GetCategory(nextCrawl.Type);
 
             category.CallBack?.Invoke(document);
@@ -41,7 +45,7 @@
             {
                 var url = descendant.Attributes["href"].Value;
                 var newUrl = new Uri(new Uri(nextCrawl.Url), url);
-                var type = this.GetCrawlerType(newUrl);
+                var type = this.GetCrawlerType(newUrl, null);
 
                 if (!string.IsNullOrEmpty(type))
                 {
@@ -55,9 +59,9 @@
             return this.categories.FirstOrDefault(c => c.Code == code);
         }
 
-        private string GetCrawlerType(Uri newUrl)
+        private string GetCrawlerType(Uri newUrl, HtmlDocument document)
         {
-            return this.categories.FirstOrDefault(c => c.IsCategory(newUrl))?.Code;
+            return this.categories.FirstOrDefault(c => c.IsCategory(newUrl, document))?.Code;
         }
 
         public void AddCategory(Category category)

@@ -2,6 +2,7 @@
 {
     using System;
     using System.ComponentModel;
+    using System.Linq;
     using System.Net;
     using System.Net.Http;
     using System.Threading;
@@ -34,20 +35,28 @@
 
             this.uri = new Uri("http://localhost.crawl.com");
             this.crawlerRepository.GetNext().Returns(new CrawlItem
-                                                         {
-                                                             Url = uri.ToString(),
-                                                             Type = "localhost-none"
-                                                         });
+            {
+                Url = uri.ToString(),
+                Type = "localhost-none"
+            });
             this.httpMessageHandler.SendAsync(Arg.Any<HttpRequestMessage>(), Arg.Any<CancellationToken>())
                 .Returns(new HttpResponseMessage(HttpStatusCode.OK)
                 {
                     Content = new StringContent("<a href=\"http://localhost/\"></a>")
                 });
 
+            var categoryProduct = new Category
+            {
+                Code = "localhost-product",
+                IsCategory = (u, c) => c?.DocumentNode.Descendants("h1").FirstOrDefault()?.Attributes["class"].Value == "product"
+            };
+
+            this.crawlerEngine.AddCategory(categoryProduct);
+
             this.category = new Category
             {
                 Code = "localhost-none",
-                IsCategory = u => u.AbsoluteUri.Contains("localhost")
+                IsCategory = (u, c) => u.AbsoluteUri.Contains("localhost")
             };
 
             this.crawlerEngine.AddCategory(this.category);
@@ -101,13 +110,27 @@
         }
 
         [Fact]
+        public async void Should_change_type_When_page_is_crawled()
+        {
+            this.httpMessageHandler.SendAsync(Arg.Any<HttpRequestMessage>(), Arg.Any<CancellationToken>())
+                .Returns(new HttpResponseMessage(HttpStatusCode.OK)
+                {
+                    Content = new StringContent("<h1 class=\"product\"></h1>")
+                });
+
+            await this.crawlerEngine.Start();
+
+            this.crawlerRepository.Received(1).Update(Arg.Is<CrawlItem>(c => c.Type == "localhost-product"));
+        }
+
+        [Fact]
         public async void Should_do_not_insert_crawler_item_category_type_When_link_is_not_in_category()
         {
             this.httpMessageHandler.SendAsync(Arg.Any<HttpRequestMessage>(), Arg.Any<CancellationToken>())
                 .Returns(new HttpResponseMessage(HttpStatusCode.OK)
-                             {
-                                 Content = new StringContent("<a href=\"http://neobd.fr/\"></a>")
-                             });
+                {
+                    Content = new StringContent("<a href=\"http://neobd.fr/\"></a>")
+                });
 
             await this.crawlerEngine.Start();
 
