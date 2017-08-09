@@ -1,10 +1,12 @@
 ﻿namespace Crawler.Tests
 {
     using System;
+    using System.ComponentModel;
     using System.Net;
     using System.Net.Http;
     using System.Threading;
-    using System.Threading.Tasks;
+
+    using HtmlAgilityPack;
 
     using NSubstitute;
 
@@ -20,6 +22,8 @@
 
         private Uri uri;
 
+        private Category category;
+
         public CrawlerEngineTests()
         {
             this.crawlerRepository = Substitute.For<ICrawlerRepository>();
@@ -29,12 +33,24 @@
             this.crawlerEngine = new CrawlerEngine(this.crawlerRepository, httpClient);
 
             this.uri = new Uri("http://localhost.crawl.com");
-            this.crawlerRepository.GetNext().Returns(new CrawlItem() { Url = uri.ToString() });
+            this.crawlerRepository.GetNext().Returns(new CrawlItem
+                                                         {
+                                                             Url = uri.ToString(),
+                                                             Type = "localhost-none"
+                                                         });
             this.httpMessageHandler.SendAsync(Arg.Any<HttpRequestMessage>(), Arg.Any<CancellationToken>())
                 .Returns(new HttpResponseMessage(HttpStatusCode.OK)
-                             {
-                                 Content = new StringContent("<a href=\"http://localhost/\"></a>")
-                             });
+                {
+                    Content = new StringContent("<a href=\"http://localhost/\"></a>")
+                });
+
+            this.category = new Category
+            {
+                Code = "localhost-none",
+                IsCategory = u => u.AbsoluteUri.Contains("localhost")
+            };
+
+            this.crawlerEngine.AddCategory(this.category);
         }
 
         [Fact]
@@ -67,33 +83,45 @@
         {
             this.httpMessageHandler.SendAsync(Arg.Any<HttpRequestMessage>(), Arg.Any<CancellationToken>())
                 .Returns(new HttpResponseMessage(HttpStatusCode.OK)
-                             {
-                                 Content = new StringContent("<a href=\"/index.html\"></a>")
-                             });
+                {
+                    Content = new StringContent("<a href=\"/index.html\"></a>")
+                });
 
             await this.crawlerEngine.Start();
 
             this.crawlerRepository.Received(1).Insert(Arg.Is<CrawlItem>(c => c.Url == "http://localhost.crawl.com/index.html"));
         }
-    }
 
-    public class FakeHttpMessageHandler : HttpMessageHandler
-    {
-        private IHttpMessageHandler subtitute;
-
-        public FakeHttpMessageHandler(IHttpMessageHandler subtitute)
+        [Fact]
+        public async void Should_insert_crawler_item_category_type_When_get_page()
         {
-            this.subtitute = subtitute;
+            await this.crawlerEngine.Start();
+
+            this.crawlerRepository.Received(1).Insert(Arg.Is<CrawlItem>(c => c.Type == "localhost-none"));
         }
 
-        protected override Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
+        [Fact]
+        public async void Should_do_not_insert_crawler_item_category_type_When_link_is_not_in_category()
         {
-            return this.subtitute.SendAsync(request, cancellationToken);
-        }
-    }
+            this.httpMessageHandler.SendAsync(Arg.Any<HttpRequestMessage>(), Arg.Any<CancellationToken>())
+                .Returns(new HttpResponseMessage(HttpStatusCode.OK)
+                             {
+                                 Content = new StringContent("<a href=\"http://neobd.fr/\"></a>")
+                             });
 
-    public interface IHttpMessageHandler
-    {
-        Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken);
+            await this.crawlerEngine.Start();
+
+            this.crawlerRepository.DidNotReceive().Insert(Arg.Any<CrawlItem>());
+        }
+
+        [Fact]
+        public async void Should_call_category_call_back_When_crawl_page()
+        {
+            this.category.CallBack = Substitute.For<Action<HtmlDocument>>();
+
+            await this.crawlerEngine.Start();
+
+            this.category.CallBack.Received().Invoke(Arg.Any<HtmlDocument>());
+        }
     }
 }
