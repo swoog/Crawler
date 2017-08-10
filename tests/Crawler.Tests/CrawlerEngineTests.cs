@@ -178,5 +178,15 @@
 
             this.crawlerRepository.Received().Update(Arg.Is<CrawlItem>(c => c.State == "Done"));
         }
+
+        [Fact]
+        public async void Should_do_not_insert_link_When_link_is_in_repository()
+        {
+            this.crawlerRepository.Exist("http://localhost/").Returns(true);
+
+            await this.crawlerEngine.Start();
+
+            this.crawlerRepository.DidNotReceive().Insert(Arg.Any<CrawlItem>());
+        }
     }
 }

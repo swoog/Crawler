@@ -9,5 +9,7 @@
         void Insert(CrawlItem crawlItem);
 
         void Update(CrawlItem crawlItem);
+
+        bool Exist(string uri);
     }
 }

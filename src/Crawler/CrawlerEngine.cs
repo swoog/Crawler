@@ -51,12 +51,15 @@
 
                 if (!string.IsNullOrEmpty(type))
                 {
-                    this.crawlerRepository.Insert(new CrawlItem
+                    if (!this.crawlerRepository.Exist(newUrl.AbsoluteUri))
                     {
-                        Url = newUrl.AbsoluteUri,
-                        Type = type,
-                        State = "Todo"
-                    });
+                        this.crawlerRepository.Insert(new CrawlItem
+                                                          {
+                                                              Url = newUrl.AbsoluteUri,
+                                                              Type = type,
+                                                              State = "Todo"
+                                                          });
+                    }
                 }
             }
         }
