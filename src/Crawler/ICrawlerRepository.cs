@@ -1,8 +1,10 @@
 ﻿namespace Crawler
 {
+    using System;
+
     public interface ICrawlerRepository
     {
-        CrawlItem GetNext();
+        CrawlItem GetNext(Func<CrawlItem, bool> filter);
 
         void Insert(CrawlItem crawlItem);
 

@@ -24,7 +24,7 @@
 
         public async Task Start()
         {
-            var nextCrawl = this.crawlerRepository.GetNext();
+            var nextCrawl = this.crawlerRepository.GetNext(c => c.State == "Todo");
 
             var response = await this.httpClient.GetAsync(nextCrawl.Url);
 
@@ -37,7 +37,9 @@
 
             this.crawlerRepository.Update(nextCrawl);
 
-            var category = GetCategory(nextCrawl.Type);
+            nextCrawl.State = "Done";
+
+            var category = this.GetCategory(nextCrawl.Type);
 
             category.CallBack?.Invoke(document);
 

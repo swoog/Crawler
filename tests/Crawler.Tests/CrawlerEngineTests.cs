@@ -34,7 +34,7 @@
             this.crawlerEngine = new CrawlerEngine(this.crawlerRepository, httpClient);
 
             this.uri = new Uri("http://localhost.crawl.com");
-            this.crawlerRepository.GetNext().Returns(new CrawlItem
+            this.crawlerRepository.GetNext(Arg.Any<Func<CrawlItem, bool>>()).Returns(new CrawlItem
             {
                 Url = uri.ToString(),
                 Type = "localhost-none"
@@ -67,7 +67,7 @@
         {
             await this.crawlerEngine.Start();
 
-            this.crawlerRepository.Received(1).GetNext();
+            this.crawlerRepository.Received(1).GetNext(Arg.Any<Func<CrawlItem, bool>>());
         }
 
         [Fact]
@@ -145,6 +145,30 @@
             await this.crawlerEngine.Start();
 
             this.category.CallBack.Received().Invoke(Arg.Any<HtmlDocument>());
+        }
+
+        [Fact]
+        public async void Should_get_next_todo_When_get_next_item()
+        {
+            await this.crawlerEngine.Start();
+
+            this.crawlerRepository.Received(1).GetNext(Arg.Is<Func<CrawlItem, bool>>(c => c(new CrawlItem { State = "Todo" })));
+        }
+
+        [Fact]
+        public async void Should_did_not_get_next_When_state_is_not_todo()
+        {
+            await this.crawlerEngine.Start();
+
+            this.crawlerRepository.DidNotReceive().GetNext(Arg.Is<Func<CrawlItem, bool>>(c => c(new CrawlItem { State = "Done" })));
+        }
+
+        [Fact]
+        public async void Should_update_status_to_done_When_page_is_crawl()
+        {
+            await this.crawlerEngine.Start();
+
+            this.crawlerRepository.Received().Update(Arg.Is<CrawlItem>(c => c.State == "Done"));
         }
     }
 }
