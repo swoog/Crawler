@@ -110,6 +110,14 @@
         }
 
         [Fact]
+        public async void Should_insert_crawler_item_state_When_get_page()
+        {
+            await this.crawlerEngine.Start();
+
+            this.crawlerRepository.Received(1).Insert(Arg.Is<CrawlItem>(c => c.State == "Todo"));
+        }
+
+        [Fact]
         public async void Should_change_type_When_page_is_crawled()
         {
             this.httpMessageHandler.SendAsync(Arg.Any<HttpRequestMessage>(), Arg.Any<CancellationToken>())
