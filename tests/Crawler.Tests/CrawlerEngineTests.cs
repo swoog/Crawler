@@ -217,5 +217,13 @@
 
             this.crawlerRepository.DidNotReceive().Insert(Arg.Any<CrawlItem>());
         }
+
+        [Fact]
+        public async void Should_call_getpage_twice_When_specify_start_twice_call()
+        {
+            await this.crawlerEngine.Start(2);
+
+            this.crawlerRepository.Received(2).GetNext(Arg.Any<Func<CrawlItem, bool>>());
+        }
     }
 }

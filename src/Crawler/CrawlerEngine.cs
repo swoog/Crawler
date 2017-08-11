@@ -22,54 +22,57 @@
             this.httpClient = httpClient;
         }
 
-        public async Task Start()
+        public async Task Start(int callNumber = 1)
         {
-            var nextCrawl = this.crawlerRepository.GetNext(c => c.State == "Todo");
-
-            var response = await this.httpClient.GetAsync(nextCrawl.Url);
-
-            var content = await response.Content.ReadAsStringAsync();
-
-            var document = new HtmlDocument();
-            document.LoadHtml(content);
-
-            nextCrawl.Type = this.GetCrawlerType(new Uri(nextCrawl.Url), document);
-
-            this.crawlerRepository.Update(nextCrawl);
-
-            nextCrawl.State = "Done";
-
-            var category = this.GetCategory(nextCrawl.Type);
-
-            category.CallBack?.Invoke(document);
-
-            foreach (var descendant in document.DocumentNode.Descendants("a"))
+            for (int i = 0; i < callNumber; i++)
             {
-                var url = descendant.Attributes["href"]?.Value;
+                var nextCrawl = this.crawlerRepository.GetNext(c => c.State == "Todo");
 
-                if (string.IsNullOrEmpty(url))
+                var response = await this.httpClient.GetAsync(nextCrawl.Url);
+
+                var content = await response.Content.ReadAsStringAsync();
+
+                var document = new HtmlDocument();
+                document.LoadHtml(content);
+
+                nextCrawl.Type = this.GetCrawlerType(new Uri(nextCrawl.Url), document);
+
+                this.crawlerRepository.Update(nextCrawl);
+
+                nextCrawl.State = "Done";
+
+                var category = this.GetCategory(nextCrawl.Type);
+
+                category.CallBack?.Invoke(document);
+
+                foreach (var descendant in document.DocumentNode.Descendants("a"))
                 {
-                    continue;
-                }
+                    var url = descendant.Attributes["href"]?.Value;
 
-                if (url.Contains("#"))
-                {
-                    url = url.Split('#')[0];
-                }
-
-                var newUrl = new Uri(new Uri(nextCrawl.Url), url);
-                var type = this.GetCrawlerType(newUrl, null);
-
-                if (!string.IsNullOrEmpty(type))
-                {
-                    if (!this.crawlerRepository.Exist(newUrl.AbsoluteUri))
+                    if (string.IsNullOrEmpty(url))
                     {
-                        this.crawlerRepository.Insert(new CrawlItem
-                                                          {
-                                                              Url = newUrl.AbsoluteUri,
-                                                              Type = type,
-                                                              State = "Todo"
-                                                          });
+                        continue;
+                    }
+
+                    if (url.Contains("#"))
+                    {
+                        url = url.Split('#')[0];
+                    }
+
+                    var newUrl = new Uri(new Uri(nextCrawl.Url), url);
+                    var type = this.GetCrawlerType(newUrl, null);
+
+                    if (!string.IsNullOrEmpty(type))
+                    {
+                        if (!this.crawlerRepository.Exist(newUrl.AbsoluteUri))
+                        {
+                            this.crawlerRepository.Insert(new CrawlItem
+                            {
+                                Url = newUrl.AbsoluteUri,
+                                Type = type,
+                                State = "Todo"
+                            });
+                        }
                     }
                 }
             }
