@@ -201,5 +201,21 @@
 
             this.crawlerRepository.DidNotReceive().Insert(Arg.Any<CrawlItem>());
         }
+
+        [Fact]
+        public async void Should_do_not_insert_link_When_link_is_in_repository_andlink_contains_sharp()
+        {
+            this.httpMessageHandler.SendAsync(Arg.Any<HttpRequestMessage>(), Arg.Any<CancellationToken>())
+                .Returns(new HttpResponseMessage(HttpStatusCode.OK)
+                             {
+                                 Content = new StringContent("<a href=\"http://localhost/#toto\"></a>")
+                             });
+
+            this.crawlerRepository.Exist("http://localhost/").Returns(true);
+
+            await this.crawlerEngine.Start();
+
+            this.crawlerRepository.DidNotReceive().Insert(Arg.Any<CrawlItem>());
+        }
     }
 }

@@ -52,6 +52,11 @@
                     continue;
                 }
 
+                if (url.Contains("#"))
+                {
+                    url = url.Split('#')[0];
+                }
+
                 var newUrl = new Uri(new Uri(nextCrawl.Url), url);
                 var type = this.GetCrawlerType(newUrl, null);
 
