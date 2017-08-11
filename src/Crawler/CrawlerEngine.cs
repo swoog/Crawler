@@ -45,7 +45,13 @@
 
             foreach (var descendant in document.DocumentNode.Descendants("a"))
             {
-                var url = descendant.Attributes["href"].Value;
+                var url = descendant.Attributes["href"]?.Value;
+
+                if (string.IsNullOrEmpty(url))
+                {
+                    continue;
+                }
+
                 var newUrl = new Uri(new Uri(nextCrawl.Url), url);
                 var type = this.GetCrawlerType(newUrl, null);
 
