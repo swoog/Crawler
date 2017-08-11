@@ -10,6 +10,6 @@ namespace Crawler
 
         public Func<Uri, HtmlDocument, bool> IsCategory { get; set; }
 
-        public Action<HtmlDocument> CallBack { get; set; }
+        public Action<string, HtmlDocument> CallBack { get; set; }
     }
 }

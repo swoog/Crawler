@@ -43,7 +43,7 @@
 
                 var category = this.GetCategory(nextCrawl.Type);
 
-                category.CallBack?.Invoke(document);
+                category.CallBack?.Invoke(nextCrawl.Url, document);
 
                 foreach (var descendant in document.DocumentNode.Descendants("a"))
                 {

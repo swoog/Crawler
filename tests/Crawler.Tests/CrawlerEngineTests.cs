@@ -147,11 +147,11 @@
         [Fact]
         public async void Should_call_category_call_back_When_crawl_page()
         {
-            this.category.CallBack = Substitute.For<Action<HtmlDocument>>();
+            this.category.CallBack = Substitute.For<Action<string, HtmlDocument>>();
 
             await this.crawlerEngine.Start();
 
-            this.category.CallBack.Received().Invoke(Arg.Any<HtmlDocument>());
+            this.category.CallBack.Received().Invoke(Arg.Is<string>(u => u == "http://localhost.crawl.com/"), Arg.Any<HtmlDocument>());
         }
 
         [Fact]
@@ -193,9 +193,9 @@
         {
             this.httpMessageHandler.SendAsync(Arg.Any<HttpRequestMessage>(), Arg.Any<CancellationToken>())
                 .Returns(new HttpResponseMessage(HttpStatusCode.OK)
-                             {
-                                 Content = new StringContent("<a>Toto</a>")
-                             });
+                {
+                    Content = new StringContent("<a>Toto</a>")
+                });
 
             await this.crawlerEngine.Start();
 
@@ -207,9 +207,9 @@
         {
             this.httpMessageHandler.SendAsync(Arg.Any<HttpRequestMessage>(), Arg.Any<CancellationToken>())
                 .Returns(new HttpResponseMessage(HttpStatusCode.OK)
-                             {
-                                 Content = new StringContent("<a href=\"http://localhost/#toto\"></a>")
-                             });
+                {
+                    Content = new StringContent("<a href=\"http://localhost/#toto\"></a>")
+                });
 
             this.crawlerRepository.Exist("http://localhost/").Returns(true);
 
