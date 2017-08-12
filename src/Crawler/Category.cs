@@ -1,6 +1,7 @@
 namespace Crawler
 {
     using System;
+    using System.Threading.Tasks;
 
     using HtmlAgilityPack;
 
@@ -10,6 +11,6 @@ namespace Crawler
 
         public Func<Uri, HtmlDocument, bool> IsCategory { get; set; }
 
-        public Action<string, HtmlDocument> CallBack { get; set; }
+        public Func<string, HtmlDocument, Task> CallBack { get; set; }
     }
 }

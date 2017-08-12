@@ -5,6 +5,7 @@
     using System.Net;
     using System.Net.Http;
     using System.Threading;
+    using System.Threading.Tasks;
 
     using HtmlAgilityPack;
 
@@ -147,11 +148,11 @@
         [Fact]
         public async void Should_call_category_call_back_When_crawl_page()
         {
-            this.category.CallBack = Substitute.For<Action<string, HtmlDocument>>();
+            this.category.CallBack = Substitute.For<Func<string, HtmlDocument, Task>>();
 
             await this.crawlerEngine.Start();
 
-            this.category.CallBack.Received().Invoke(Arg.Is<string>(u => u == "http://localhost.crawl.com/"), Arg.Any<HtmlDocument>());
+            await this.category.CallBack.Received().Invoke(Arg.Is<string>(u => u == "http://localhost.crawl.com/"), Arg.Any<HtmlDocument>());
         }
 
         [Fact]
