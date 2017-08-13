@@ -14,12 +14,18 @@
 
         private readonly HttpClient httpClient;
 
+        private readonly ICrawlerLogger crawlerLogger;
+
         private List<Category> categories = new List<Category>();
 
-        public CrawlerEngine(ICrawlerRepository crawlerRepository, HttpClient httpClient)
+        public CrawlerEngine(
+            ICrawlerRepository crawlerRepository,
+            HttpClient httpClient,
+            ICrawlerLogger crawlerLogger)
         {
             this.crawlerRepository = crawlerRepository;
             this.httpClient = httpClient;
+            this.crawlerLogger = crawlerLogger;
         }
 
         public async Task Start(int callNumber = 1)
@@ -28,56 +34,64 @@
             {
                 var nextCrawl = this.crawlerRepository.GetNext(c => c.State == "Todo");
 
-                var response = await this.httpClient.GetAsync(nextCrawl.Url);
-
-                var content = await response.Content.ReadAsStringAsync();
-
-                var document = new HtmlDocument();
-                document.LoadHtml(content);
-
-                nextCrawl.Type = this.GetCrawlerType(new Uri(nextCrawl.Url), document);
-
-                this.crawlerRepository.Update(nextCrawl);
-
-                nextCrawl.State = "Done";
-
-                var category = this.GetCategory(nextCrawl.Type);
-
-                var categoryCallBack = category.CallBack;
-                if (categoryCallBack != null)
+                try
                 {
-                    await categoryCallBack(nextCrawl.Url, document);
-                }
+                    var response = await this.httpClient.GetAsync(nextCrawl.Url);
 
-                foreach (var descendant in document.DocumentNode.Descendants("a"))
-                {
-                    var url = descendant.Attributes["href"]?.Value;
+                    var content = await response.Content.ReadAsStringAsync();
 
-                    if (string.IsNullOrEmpty(url))
+                    var document = new HtmlDocument();
+                    document.LoadHtml(content);
+
+                    nextCrawl.Type = this.GetCrawlerType(new Uri(nextCrawl.Url), document);
+                    nextCrawl.State = "Done";
+
+                    this.crawlerRepository.Update(nextCrawl);
+
+                    var category = this.GetCategory(nextCrawl.Type);
+
+                    var categoryCallBack = category.CallBack;
+                    if (categoryCallBack != null)
                     {
-                        continue;
+                        await categoryCallBack(nextCrawl.Url, document);
                     }
 
-                    if (url.Contains("#"))
+                    foreach (var descendant in document.DocumentNode.Descendants("a"))
                     {
-                        url = url.Split('#')[0];
-                    }
+                        var url = descendant.Attributes["href"]?.Value;
 
-                    var newUrl = new Uri(new Uri(nextCrawl.Url), url);
-                    var type = this.GetCrawlerType(newUrl, null);
-
-                    if (!string.IsNullOrEmpty(type))
-                    {
-                        if (!this.crawlerRepository.Exist(newUrl.AbsoluteUri))
+                        if (string.IsNullOrEmpty(url))
                         {
-                            this.crawlerRepository.Insert(new CrawlItem
+                            continue;
+                        }
+
+                        if (url.Contains("#"))
+                        {
+                            url = url.Split('#')[0];
+                        }
+
+                        var newUrl = new Uri(new Uri(nextCrawl.Url), url);
+                        var type = this.GetCrawlerType(newUrl, null);
+
+                        if (!string.IsNullOrEmpty(type))
+                        {
+                            if (!this.crawlerRepository.Exist(newUrl.AbsoluteUri))
                             {
-                                Url = newUrl.AbsoluteUri,
-                                Type = type,
-                                State = "Todo"
-                            });
+                                this.crawlerRepository.Insert(new CrawlItem
+                                {
+                                    Url = newUrl.AbsoluteUri,
+                                    Type = type,
+                                    State = "Todo"
+                                });
+                            }
                         }
                     }
+                }
+                catch (Exception ex)
+                {
+                    this.crawlerLogger.Error(ex);
+                    nextCrawl.State = "Error";
+                    this.crawlerRepository.Update(nextCrawl);
                 }
             }
         }

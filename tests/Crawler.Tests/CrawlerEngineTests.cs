@@ -1,6 +1,7 @@
 ﻿namespace Crawler.Tests
 {
     using System;
+    using System.IO;
     using System.Linq;
     using System.Net;
     using System.Net.Http;
@@ -15,23 +16,26 @@
 
     public class CrawlerEngineTests
     {
-        private ICrawlerRepository crawlerRepository;
+        private readonly ICrawlerRepository crawlerRepository;
 
-        private IHttpMessageHandler httpMessageHandler;
+        private readonly IHttpMessageHandler httpMessageHandler;
 
-        private CrawlerEngine crawlerEngine;
+        private readonly CrawlerEngine crawlerEngine;
 
-        private Uri uri;
+        private readonly Uri uri;
 
-        private Category category;
+        private readonly Category category;
+
+        private readonly ICrawlerLogger crawlerLogger;
 
         public CrawlerEngineTests()
         {
             this.crawlerRepository = Substitute.For<ICrawlerRepository>();
             this.httpMessageHandler = Substitute.For<IHttpMessageHandler>();
+            this.crawlerLogger = Substitute.For<ICrawlerLogger>();
 
             var httpClient = new HttpClient(new FakeHttpMessageHandler(this.httpMessageHandler));
-            this.crawlerEngine = new CrawlerEngine(this.crawlerRepository, httpClient);
+            this.crawlerEngine = new CrawlerEngine(this.crawlerRepository, httpClient, this.crawlerLogger);
 
             this.uri = new Uri("http://localhost.crawl.com");
             this.crawlerRepository.GetNext(Arg.Any<Func<CrawlItem, bool>>()).Returns(new CrawlItem
@@ -225,6 +229,30 @@
             await this.crawlerEngine.Start(2);
 
             this.crawlerRepository.Received(2).GetNext(Arg.Any<Func<CrawlItem, bool>>());
+        }
+
+        [Fact]
+        public async void Should_log_when_exception_is_throw()
+        {
+
+            this.httpMessageHandler.When(i => i.SendAsync(Arg.Any<HttpRequestMessage>(), Arg.Any<CancellationToken>()))
+                .Throw<Exception>();
+
+            await this.crawlerEngine.Start(1);
+
+            this.crawlerLogger.Received(1).Error(Arg.Any<Exception>());
+        }
+
+        [Fact]
+        public async void Should_update_to_error_when_exception_is_throw()
+        {
+
+            this.httpMessageHandler.When(i => i.SendAsync(Arg.Any<HttpRequestMessage>(), Arg.Any<CancellationToken>()))
+                .Throw<Exception>();
+
+            await this.crawlerEngine.Start(1);
+
+            this.crawlerRepository.Received(1).Update(Arg.Is<CrawlItem>(c => c.State == "Error"));
         }
     }
 }
