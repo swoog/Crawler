@@ -82,6 +82,25 @@
             await this.httpMessageHandler.Received(1).SendAsync(Arg.Is<HttpRequestMessage>(h => h.RequestUri == this.uri), Arg.Any<CancellationToken>());
         }
 
+        [Fact]
+        public async void Should_do_not_call_url_When_get_first_crawl_url_is_ignore()
+        {
+            this.category.IgnoreCrawl = true;
+
+            await this.crawlerEngine.Start();
+
+            await this.httpMessageHandler.DidNotReceive().SendAsync(Arg.Is<HttpRequestMessage>(h => h.RequestUri == this.uri), Arg.Any<CancellationToken>());
+        }
+
+        [Fact]
+        public async void Should_update_status_to_ignore_When_get_first_crawl_url_is_ignore()
+        {
+            this.category.IgnoreCrawl = true;
+
+            await this.crawlerEngine.Start();
+
+            this.crawlerRepository.Received(1).Update(Arg.Is<CrawlItem>(c => c.State == "Ignore"));
+        }
 
         [Fact]
         public async void Should_get_links_from_html_code_When_get_page()

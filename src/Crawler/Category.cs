@@ -12,5 +12,7 @@ namespace Crawler
         public Func<Uri, HtmlDocument, bool> IsCategory { get; set; }
 
         public Func<string, HtmlDocument, Task> CallBack { get; set; }
+
+        public bool IgnoreCrawl { get; set; }
     }
 }

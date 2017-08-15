@@ -36,6 +36,16 @@
 
                 try
                 {
+                    nextCrawl.Type = this.GetCrawlerType(new Uri(nextCrawl.Url), null);
+                    var category = this.GetCategory(nextCrawl.Type);
+
+                    if (category.IgnoreCrawl)
+                    {
+                        nextCrawl.State = "Ignore";
+                        this.crawlerRepository.Update(nextCrawl);
+                        continue;
+                    }
+
                     var response = await this.httpClient.GetAsync(nextCrawl.Url);
 
                     var content = await response.Content.ReadAsStringAsync();
@@ -48,7 +58,7 @@
 
                     this.crawlerRepository.Update(nextCrawl);
 
-                    var category = this.GetCategory(nextCrawl.Type);
+                    category = this.GetCategory(nextCrawl.Type);
 
                     var categoryCallBack = category.CallBack;
                     if (categoryCallBack != null)
