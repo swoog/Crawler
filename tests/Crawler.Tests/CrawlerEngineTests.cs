@@ -1,4 +1,6 @@
-﻿namespace Crawler.Tests
+﻿using System.Linq.Expressions;
+
+namespace Crawler.Tests
 {
     using System;
     using System.IO;
@@ -38,7 +40,7 @@
             this.crawlerEngine = new CrawlerEngine(this.crawlerRepository, httpClient, this.crawlerLogger);
 
             this.uri = new Uri("http://localhost.crawl.com");
-            this.crawlerRepository.GetNext(Arg.Any<Func<CrawlItem, bool>>()).Returns(new CrawlItem
+            this.crawlerRepository.GetNext(Arg.Any<Expression<Func<CrawlItem, bool>>>()).Returns(new CrawlItem
             {
                 Url = uri.ToString(),
                 Type = "localhost-none"
@@ -71,7 +73,7 @@
         {
             await this.crawlerEngine.Start();
 
-            this.crawlerRepository.Received(1).GetNext(Arg.Any<Func<CrawlItem, bool>>());
+            this.crawlerRepository.Received(1).GetNext(Arg.Any<Expression<Func<CrawlItem, bool>>>());
         }
 
         [Fact]
@@ -183,7 +185,7 @@
         {
             await this.crawlerEngine.Start();
 
-            this.crawlerRepository.Received(1).GetNext(Arg.Is<Func<CrawlItem, bool>>(c => c(new CrawlItem { State = "Todo" })));
+            this.crawlerRepository.Received(1).GetNext(Arg.Is<Expression<Func<CrawlItem, bool>>>(c => c.Compile()(new CrawlItem { State = "Todo" })));
         }
 
         [Fact]
@@ -191,7 +193,7 @@
         {
             await this.crawlerEngine.Start();
 
-            this.crawlerRepository.DidNotReceive().GetNext(Arg.Is<Func<CrawlItem, bool>>(c => c(new CrawlItem { State = "Done" })));
+            this.crawlerRepository.DidNotReceive().GetNext(Arg.Is<Expression<Func<CrawlItem, bool>>>(c => c.Compile()(new CrawlItem { State = "Done" })));
         }
 
         [Fact]
@@ -247,7 +249,7 @@
         {
             await this.crawlerEngine.Start(2);
 
-            this.crawlerRepository.Received(2).GetNext(Arg.Any<Func<CrawlItem, bool>>());
+            this.crawlerRepository.Received(2).GetNext(Arg.Any<Expression<Func<CrawlItem, bool>>>());
         }
 
         [Fact]
