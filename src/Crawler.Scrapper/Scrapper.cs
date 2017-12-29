@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using Crawler.Scrapper;
 using HtmlAgilityPack;
 
 namespace Crawler.Scrapper
