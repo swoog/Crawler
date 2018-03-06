@@ -9,7 +9,9 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Crawler.Tests", "tests\Craw
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Crawler.Scrapper", "src\Crawler.Scrapper\Crawler.Scrapper.csproj", "{89F3EB94-A110-4387-B5E4-8517E4BDD727}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Crawler.EntityFramework", "src\Crawler.EntityFramework\Crawler.EntityFramework.csproj", "{98C365BB-A4EB-4CDF-9423-B6BF9F377062}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Crawler.EntityFramework", "src\Crawler.EntityFramework\Crawler.EntityFramework.csproj", "{98C365BB-A4EB-4CDF-9423-B6BF9F377062}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Crawler.Pattern.Logging", "src\Crawler.Pattern.Logging\Crawler.Pattern.Logging.csproj", "{C317930E-95CD-4940-A4CD-DA7771B805B7}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -33,6 +35,10 @@ Global
 		{98C365BB-A4EB-4CDF-9423-B6BF9F377062}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{98C365BB-A4EB-4CDF-9423-B6BF9F377062}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{98C365BB-A4EB-4CDF-9423-B6BF9F377062}.Release|Any CPU.Build.0 = Release|Any CPU
+		{C317930E-95CD-4940-A4CD-DA7771B805B7}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{C317930E-95CD-4940-A4CD-DA7771B805B7}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{C317930E-95CD-4940-A4CD-DA7771B805B7}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{C317930E-95CD-4940-A4CD-DA7771B805B7}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
