@@ -11,5 +11,8 @@
   <ItemGroup>
     <PackageReference Include="HtmlAgilityPack" Version="1.5.1" />
   </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Crawler\Crawler.csproj" />
+  </ItemGroup>
 
 </Project>
