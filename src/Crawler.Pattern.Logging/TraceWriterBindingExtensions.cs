@@ -9,7 +9,7 @@ namespace Crawler.Pattern.Logging
         public static IKernel BindCrawlerLogger(this IKernel kernel)
         {
             kernel.Bind(
-                typeof(ILogger),
+                typeof(ICrawlerLogger),
                 new TypeFactory(typeof(PatternLogger), kernel));
 
             return kernel;
