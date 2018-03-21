@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Linq;
 using HtmlAgilityPack;
 
 namespace Crawler.Scrapper
@@ -20,6 +21,20 @@ namespace Crawler.Scrapper
                     yield return descendant;
                 }
             }
+        }
+        public static IEnumerable<HtmlNode> Att(this IEnumerable<HtmlNode> nodes, string name, string value)
+        {
+            return nodes.Where(n => n.Attributes.Contains(name) && n.Attributes[name].Value == value);
+        }
+
+        public static string InnerText(this IEnumerable<HtmlNode> nodes)
+        {
+            foreach (var htmlNode in nodes)
+            {
+                return htmlNode.InnerText;
+            }
+
+            throw new KeyNotFoundException();
         }
     }
 }

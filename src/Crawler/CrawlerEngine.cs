@@ -36,6 +36,11 @@
 
                 try
                 {
+                    if (nextCrawl == null)
+                    {
+                        break;
+                    }
+
                     nextCrawl.Type = this.GetCrawlerType(new Uri(nextCrawl.Url), null);
                     var category = this.GetCategory(nextCrawl.Type);
 
@@ -119,6 +124,18 @@
         public void AddCategory(Category category)
         {
             this.categories.Add(category);
+        }
+
+        public CrawlerEngine Begin(string url)
+        {
+            this.crawlerRepository.Insert(new CrawlItem()
+            {
+                Url = url,
+                Type = "none",
+                State = "Todo"
+            });
+
+            return this;
         }
     }
 }
